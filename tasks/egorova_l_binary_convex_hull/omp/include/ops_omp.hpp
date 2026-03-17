@@ -18,7 +18,6 @@ class BinaryConvexHullOMP : public BaseTask {
   bool PostProcessingImpl() override;
 
  private:
-  // Вспомогательные функции
   static std::vector<std::vector<Point>> FindComponents(const std::vector<uint8_t> &image, int width, int height);
   static void ProcessComponent(const std::vector<uint8_t> &image, int width, int height, int start_x, int start_y,
                                int label, std::vector<int> &labels, std::vector<Point> &component_points);
