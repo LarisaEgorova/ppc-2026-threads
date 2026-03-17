@@ -17,18 +17,16 @@ namespace egorova_l_binary_convex_hull {
 using TestType = std::tuple<InType, std::vector<std::vector<Point>>, std::string>;
 
 namespace {
-bool ArePointsEqual(const Point& p1, const Point& p2) {
+bool ArePointsEqual(const Point &p1, const Point &p2) {
   return p1.x == p2.x && p1.y == p2.y;
 }
 
-void SortPoints(std::vector<Point>& points) {
+void SortPoints(std::vector<Point> &points) {
   std::ranges::sort(points,
-            [](const Point& lhs, const Point& rhs) {
-              return std::tie(lhs.x, lhs.y) < std::tie(rhs.x, rhs.y);
-            });
+                    [](const Point &lhs, const Point &rhs) { return std::tie(lhs.x, lhs.y) < std::tie(rhs.x, rhs.y); });
 }
 
-bool AreHullsEqual(const std::vector<Point>& hull1, const std::vector<Point>& hull2) {
+bool AreHullsEqual(const std::vector<Point> &hull1, const std::vector<Point> &hull2) {
   if (hull1.size() != hull2.size()) {
     return false;
   }
@@ -44,17 +42,16 @@ bool AreHullsEqual(const std::vector<Point>& hull1, const std::vector<Point>& hu
   return true;
 }
 
-void SortHulls(std::vector<std::vector<Point>>& hulls) {
-  for (auto& hull : hulls) {
+void SortHulls(std::vector<std::vector<Point>> &hulls) {
+  for (auto &hull : hulls) {
     SortPoints(hull);
   }
-  std::ranges::sort(hulls,
-            [](const std::vector<Point>& a, const std::vector<Point>& b) {
-              if (a.empty() || b.empty()) {
-                return a.size() < b.size();
-              }
-              return std::tie(a[0].x, a[0].y) < std::tie(b[0].x, b[0].y);
-            });
+  std::ranges::sort(hulls, [](const std::vector<Point> &a, const std::vector<Point> &b) {
+    if (a.empty() || b.empty()) {
+      return a.size() < b.size();
+    }
+    return std::tie(a[0].x, a[0].y) < std::tie(b[0].x, b[0].y);
+  });
 }
 
 // Вспомогательные функции для создания данных
@@ -66,7 +63,7 @@ InType CreateEmptyImage(int width, int height) {
   return img;
 }
 
-void DrawRectangle(InType& img, int x1, int y1, int x2, int y2) {
+void DrawRectangle(InType &img, int x1, int y1, int x2, int y2) {
   for (int row = y1; row <= y2; ++row) {
     for (int col = x1; col <= x2; ++col) {
       if (col >= 0 && col < img.width && row >= 0 && row < img.height) {
@@ -88,7 +85,7 @@ std::vector<Point> GetLineHull(int x1, int y1, int x2, int y2) {
 
 class EgorovaLFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, TestType> {
  public:
-  static std::string PrintTestParam(const TestType& test_param) {
+  static std::string PrintTestParam(const TestType &test_param) {
     return std::get<2>(test_param);
   }
 
@@ -99,7 +96,7 @@ class EgorovaLFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, Tes
     expected_result_ = std::get<1>(params);
   }
 
-  bool CheckTestOutputData(OutType& output_data) final {
+  bool CheckTestOutputData(OutType &output_data) final {
     if (output_data.size() != expected_result_.size()) {
       return false;
     }
@@ -115,7 +112,9 @@ class EgorovaLFuncTest : public ppc::util::BaseRunFuncTests<InType, OutType, Tes
     return true;
   }
 
-  InType GetTestInputData() final { return input_data_; }
+  InType GetTestInputData() final {
+    return input_data_;
+  }
 
  private:
   InType input_data_;
@@ -218,11 +217,10 @@ static const std::array<TestType, 8> kOMPTestParams = {{
 }};
 
 // Регистрация тестов для OMP
-INSTANTIATE_TEST_SUITE_P(
-    BinaryConvexHullTestsOMP, EgorovaLFuncTest,
-    ppc::util::ExpandToValues(std::tuple_cat(
-        ppc::util::AddFuncTask<BinaryConvexHullOMP, InType>(kOMPTestParams, PPC_SETTINGS_egorova_l_binary_convex_hull))),
-    EgorovaLFuncTest::PrintFuncTestName<EgorovaLFuncTest>);
+INSTANTIATE_TEST_SUITE_P(BinaryConvexHullTestsOMP, EgorovaLFuncTest,
+                         ppc::util::ExpandToValues(std::tuple_cat(ppc::util::AddFuncTask<BinaryConvexHullOMP, InType>(
+                             kOMPTestParams, PPC_SETTINGS_egorova_l_binary_convex_hull))),
+                         EgorovaLFuncTest::PrintFuncTestName<EgorovaLFuncTest>);
 
 TEST_P(EgorovaLFuncTest, RunFunctionalTests) {
   ExecuteTest(GetParam());

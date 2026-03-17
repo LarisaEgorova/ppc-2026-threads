@@ -28,7 +28,8 @@ class EgorovaLPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> {
       for (int col = 100; col < kWidth - 100; col += 100) {
         for (int dy = 0; dy < 20; ++dy) {
           for (int dx = 0; dx < 20; ++dx) {
-            const size_t index = (static_cast<size_t>(row + dy) * static_cast<size_t>(kWidth)) + static_cast<size_t>(col + dx);
+            const size_t index =
+                (static_cast<size_t>(row + dy) * static_cast<size_t>(kWidth)) + static_cast<size_t>(col + dx);
             input_data.data[index] = 255;
           }
         }
@@ -37,11 +38,13 @@ class EgorovaLPerfTest : public ppc::util::BaseRunPerfTests<InType, OutType> {
     }
   }
 
-  bool CheckTestOutputData(OutType& output_data) final {
+  bool CheckTestOutputData(OutType &output_data) final {
     return output_data.size() == static_cast<size_t>(expected_components);
   }
 
-  InType GetTestInputData() final { return input_data; }
+  InType GetTestInputData() final {
+    return input_data;
+  }
 };
 
 // Запуск для SEQ
@@ -51,8 +54,7 @@ TEST_P(EgorovaLPerfTest, RunPerfModesSEQ) {
 
 const auto kAllPerfTasksSEQ =
     ppc::util::MakeAllPerfTasks<InType, BinaryConvexHullSEQ>(PPC_SETTINGS_egorova_l_binary_convex_hull);
-INSTANTIATE_TEST_SUITE_P(RunModeTestsSEQ, EgorovaLPerfTest,
-                         ppc::util::TupleToGTestValues(kAllPerfTasksSEQ),
+INSTANTIATE_TEST_SUITE_P(RunModeTestsSEQ, EgorovaLPerfTest, ppc::util::TupleToGTestValues(kAllPerfTasksSEQ),
                          EgorovaLPerfTest::CustomPerfTestName);
 
 // Запуск для OMP
@@ -62,8 +64,7 @@ TEST_P(EgorovaLPerfTest, RunPerfModesOMP) {
 
 const auto kAllPerfTasksOMP =
     ppc::util::MakeAllPerfTasks<InType, BinaryConvexHullOMP>(PPC_SETTINGS_egorova_l_binary_convex_hull);
-INSTANTIATE_TEST_SUITE_P(RunModeTestsOMP, EgorovaLPerfTest,
-                         ppc::util::TupleToGTestValues(kAllPerfTasksOMP),
+INSTANTIATE_TEST_SUITE_P(RunModeTestsOMP, EgorovaLPerfTest, ppc::util::TupleToGTestValues(kAllPerfTasksOMP),
                          EgorovaLPerfTest::CustomPerfTestName);
 
 }  // namespace egorova_l_binary_convex_hull

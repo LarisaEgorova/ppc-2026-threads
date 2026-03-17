@@ -21,9 +21,8 @@ struct Pixel {
 };
 
 // Вспомогательная функция для проверки соседей
-inline void CheckNeighbor(const std::vector<uint8_t>& image, int width, int height,
-                          int next_x, int next_y, int label,
-                          std::vector<int>& labels, std::queue<Pixel>& queue) {
+inline void CheckNeighbor(const std::vector<uint8_t> &image, int width, int height, int next_x, int next_y, int label,
+                          std::vector<int> &labels, std::queue<Pixel> &queue) {
   if (next_x >= 0 && next_x < width && next_y >= 0 && next_y < height) {
     const size_t next_index = (static_cast<size_t>(next_y) * static_cast<size_t>(width)) + static_cast<size_t>(next_x);
     if (image[next_index] != 0 && labels[next_index] == 0) {
@@ -36,13 +35,13 @@ inline void CheckNeighbor(const std::vector<uint8_t>& image, int width, int heig
 
 // ==================== Публичные методы ====================
 
-BinaryConvexHullOMP::BinaryConvexHullOMP(const InType& in) {
+BinaryConvexHullOMP::BinaryConvexHullOMP(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
 }
 
 bool BinaryConvexHullOMP::ValidationImpl() {
-  const auto& input = GetInput();
+  const auto &input = GetInput();
   return input.width > 0 && input.height > 0 && !input.data.empty() &&
          input.data.size() == static_cast<size_t>(input.width) * static_cast<size_t>(input.height);
 }
@@ -55,17 +54,17 @@ bool BinaryConvexHullOMP::PreProcessingImpl() {
 bool BinaryConvexHullOMP::RunImpl() {
   const int width = GetInput().width;
   const int height = GetInput().height;
-  const auto& image = GetInput().data;
+  const auto &image = GetInput().data;
 
   std::vector<std::vector<Point>> components = FindComponents(image, width, height);
 
-  auto& output = GetOutput();
+  auto &output = GetOutput();
   output.resize(components.size());
 
   omp_set_num_threads(omp_get_max_threads());
 
   const int num_components = static_cast<int>(components.size());
-  #pragma omp parallel for schedule(dynamic, 1) default(none) shared(components, output, num_components)
+#pragma omp parallel for schedule(dynamic, 1) default(none) shared(components, output, num_components)
   for (int i = 0; i < num_components; ++i) {
     if (components[i].empty()) {
       continue;
@@ -74,8 +73,10 @@ bool BinaryConvexHullOMP::RunImpl() {
     std::vector<Point> hull;
     BuildConvexHull(components[i], hull);
 
-    #pragma omp critical
-    { output[i] = std::move(hull); }
+#pragma omp critical
+    {
+      output[i] = std::move(hull);
+    }
   }
 
   return true;
@@ -87,7 +88,8 @@ bool BinaryConvexHullOMP::PostProcessingImpl() {
 
 // ==================== Приватные методы ====================
 
-std::vector<std::vector<Point>> BinaryConvexHullOMP::FindComponents(const std::vector<uint8_t>& image, int width, int height) {
+std::vector<std::vector<Point>> BinaryConvexHullOMP::FindComponents(const std::vector<uint8_t> &image, int width,
+                                                                    int height) {
   const size_t image_size = static_cast<size_t>(width) * static_cast<size_t>(height);
   std::vector<int> labels(image_size, 0);
   int label_counter = 0;
@@ -115,10 +117,9 @@ std::vector<std::vector<Point>> BinaryConvexHullOMP::FindComponents(const std::v
   return components;
 }
 
-void BinaryConvexHullOMP::ProcessComponent(const std::vector<uint8_t>& image, int width, int height,
-                                           int start_x, int start_y, int label,
-                                           std::vector<int>& labels,
-                                           std::vector<Point>& component_points) {
+void BinaryConvexHullOMP::ProcessComponent(const std::vector<uint8_t> &image, int width, int height, int start_x,
+                                           int start_y, int label, std::vector<int> &labels,
+                                           std::vector<Point> &component_points) {
   if (start_x < 0 || start_x >= width || start_y < 0 || start_y >= height) {
     component_points.clear();
     return;
@@ -147,7 +148,7 @@ void BinaryConvexHullOMP::ProcessComponent(const std::vector<uint8_t>& image, in
   }
 }
 
-int64_t BinaryConvexHullOMP::CrossProduct(const Point& a, const Point& b, const Point& c) {
+int64_t BinaryConvexHullOMP::CrossProduct(const Point &a, const Point &b, const Point &c) {
   const auto dx1 = static_cast<int64_t>(b.x - a.x);
   const auto dy1 = static_cast<int64_t>(c.y - a.y);
   const auto dx2 = static_cast<int64_t>(b.y - a.y);
@@ -155,7 +156,7 @@ int64_t BinaryConvexHullOMP::CrossProduct(const Point& a, const Point& b, const 
   return (dx1 * dy1) - (dx2 * dy2);
 }
 
-void BinaryConvexHullOMP::BuildConvexHull(std::vector<Point>& points, std::vector<Point>& hull) {
+void BinaryConvexHullOMP::BuildConvexHull(std::vector<Point> &points, std::vector<Point> &hull) {
   const size_t points_count = points.size();
 
   if (points_count == 0) {
@@ -168,9 +169,8 @@ void BinaryConvexHullOMP::BuildConvexHull(std::vector<Point>& points, std::vecto
     return;
   }
 
-  std::ranges::sort(points, [](const Point& lhs, const Point& rhs) {
-    return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y);
-  });
+  std::ranges::sort(
+      points, [](const Point &lhs, const Point &rhs) { return lhs.x < rhs.x || (lhs.x == rhs.x && lhs.y < rhs.y); });
 
   // Нижняя оболочка
   hull.clear();
